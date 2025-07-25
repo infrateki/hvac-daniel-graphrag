@@ -1,10 +1,10 @@
-# 🚀 HVAC Daniel GraphRAG System - Complete Implementation
+# 🚀 HVAC GraphRAG System
 
-**Complete GraphRAG system for Samsung HVAC technical support automation** - Following the Essential GraphRAG book by Tomaz Bratanic.
+**Complete GraphRAG system for Samsung HVAC technical support automation** 
 
 ## 🎯 Project Overview
 
-This system automates **Daniel Uslenghi's daily technical support work** at Multipoint S.A., transforming him from answering 200+ repetitive questions daily to focusing on complex engineering problems.
+This system automates **daily technical support work** transforming him from answering repetitive questions daily to focusing on complex engineering problems.
 
 ### 📊 What This System Does
 
@@ -12,7 +12,7 @@ This system automates **Daniel Uslenghi's daily technical support work** at Mult
 - **🧠 Smart Routing**: Uses 5 different AI approaches based on query complexity  
 - **📚 Knowledge Integration**: Combines Samsung manuals, product data, and error codes
 - **🔍 Multi-Language**: Works in Spanish and English
-- **📈 Learning System**: Improves from Daniel's expert feedback
+- **📈 Learning System**: Improves from subject domain expert feedback
 
 ## 📚 Complete Essential GraphRAG Implementation
 
@@ -100,17 +100,17 @@ python launch_ultimate_graphrag.py --mode batch --input-dir data/manuals
 
 ## 🎯 Real-World Impact
 
-### For Daniel Uslenghi
-- **⏰ Time Saved**: 40+ hours/week from automation
+### For expert
+- **⏰ Time Saved**: 10+ hours/week from automation
 - **📈 Quality**: Consistent, comprehensive answers
 - **🎯 Focus**: More time for complex engineering
 - **📚 Knowledge**: System learns from his expertise
 
-### For Multipoint S.A.
+### For company
 - **💰 Cost Reduction**: 60% lower support costs
 - **😊 Customer Satisfaction**: Faster responses
 - **📊 Scalability**: Handle 500+ queries/week
-- **🔄 Knowledge Preservation**: Capture 30+ years experience
+- **🔄 Knowledge Preservation**: Capture employees 30+ years experience
 
 ## 🏗️ System Architecture
 
@@ -200,16 +200,11 @@ pytest tests/ --cov=src
 
 ## 📞 Support
 
-- **👨‍💻 Developer**: Sergio Sebastian
-- **📧 Email**: infrateki@gmail.com  
-- **🏢 Company**: Multipoint S.A.
-- **🎯 End User**: Daniel Uslenghi
-
 ## 📜 License
 
-**Proprietary License - Multipoint S.A.**
+**Proprietary License**
 
-This software is proprietary to Multipoint S.A. and Daniel Uslenghi's HVAC technical support system.
+This software is a proprietary system.
 
 ## 🙏 Acknowledgments
 
@@ -217,10 +212,3 @@ This software is proprietary to Multipoint S.A. and Daniel Uslenghi's HVAC techn
 - **🏢 Samsung HVAC**: Technical documentation
 - **🗄️ Neo4j**: Graph database platform
 - **🤖 OpenAI**: Language models
-- **👨‍🔧 Daniel Uslenghi**: 30+ years HVAC expertise
-
----
-
-**Built with ❤️ to save Daniel 40+ hours per week and revolutionize HVAC technical support.**
-
-*🚀 Ready for production deployment at Multipoint S.A.*
