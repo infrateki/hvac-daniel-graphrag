@@ -10,9 +10,9 @@
 python rebrand_project.py --preset generic
 
 # This automatically changes:
-# ✅ "Sergio Sebastian" → "System Developer" 
-# ✅ "Daniel Uslenghi" → "Technical Expert"
-# ✅ "Multipoint S.A." → "Your Company"
+# ✅ "user" → "System Developer" 
+# ✅ "user" → "Technical Expert"
+# ✅ "company" → "Your Company"
 # ✅ All email and contact references
 ```
 
