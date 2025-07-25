@@ -1,0 +1,2 @@
+# Additional requirements for web interface
+flask>=2.3.0
