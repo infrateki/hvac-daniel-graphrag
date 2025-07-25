@@ -1,0 +1,299 @@
+# HVAC Three-Layer Architecture Implementation
+
+## System Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    User Interface Layer                       │
+│  WhatsApp Bot │ Web API │ CLI Tool │ Samsung Integration    │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────────┐
+│                 Layer 2: AI Processing                        │
+│  ┌─────────────┐ ┌──────────────┐ ┌───────────────────┐    │
+│  │Query Parser │ │ LLM Context  │ │Response Generator │    │
+│  │& Intent     │ │ Enrichment   │ │& Formatter        │    │
+│  └─────────────┘ └──────────────┘ └───────────────────┘    │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────────┐
+│              Layer 3: Graph Operations                        │
+│  ┌─────────────┐ ┌──────────────┐ ┌───────────────────┐    │
+│  │Error Code   │ │Compatibility │ │Installation       │    │
+│  │Retriever    │ │Retriever     │ │Retriever         │    │
+│  └─────────────┘ └──────────────┘ └───────────────────┘    │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────────────┐
+│           Layer 1: Domain Ontology (Neo4j)                   │
+│  Products │ Errors │ Cables │ Projects │ Manuals │ Users    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Implementation Details
+
+### Layer 1: Domain Ontology (Knowledge Base)
+
+**Neo4j Graph Schema Implementation**
+
+```python
+# Node Labels
+LABELS = {
+    'ProductoSamsung': 'Samsung HVAC products',
+    'ErrorSamsung': 'Error codes and solutions',
+    'EspecificacionCable': 'Cable specifications',
+    'Instalador': 'Installer profiles',
+    'Proyecto': 'Installation projects',
+    'ManualTecnico': 'Technical manuals',
+    'SeccionManual': 'Manual sections'
+}
+
+# Relationship Types
+RELATIONSHIPS = {
+    'ES_COMPATIBLE': 'Product compatibility',
+    'TIENE_ERROR': 'Product-error association',
+    'REQUIERE_CABLE': 'Cable requirements',
+    'REALIZO_CONSULTA': 'User queries',
+    'DOCUMENTA': 'Manual coverage',
+    'CONTIENE_SECCION': 'Manual sections'
+}
+```
+
+**Key Indexes for Performance**
+```cypher
+CREATE INDEX product_sku FOR (p:ProductoSamsung) ON (p.codigoProducto);
+CREATE INDEX error_code FOR (e:ErrorSamsung) ON (e.codigoError);
+CREATE VECTOR INDEX manual_embeddings FOR (s:SeccionManual) ON (s.embedding)
+OPTIONS {indexConfig: {`vector.dimensions`: 1536, `vector.similarity_function`: 'cosine'}};
+```
+
+### Layer 2: AI Processing Implementation
+
+**Query Processing Pipeline**
+
+```python
+class QueryProcessor:
+    def process(self, query: str) -> ProcessedQuery:
+        # 1. Language Detection
+        language = detect_language(query)
+        
+        # 2. Intent Classification
+        intent = classify_intent(query)
+        # Intents: error_diagnosis, compatibility_check, 
+        #          installation_guide, cable_spec, general
+        
+        # 3. Entity Extraction
+        entities = extract_entities(query)
+        # Entities: product_sku, error_code, capacity, 
+        #           building_type, location
+        
+        # 4. Context Enrichment
+        context = enrich_context(entities)
+        
+        return ProcessedQuery(
+            original=query,
+            language=language,
+            intent=intent,
+            entities=entities,
+            context=context
+        )
+```
+
+**Embedding Generation**
+```python
+def generate_embeddings(text: str) -> List[float]:
+    # Using OpenAI text-embedding-ada-002
+    response = openai.Embedding.create(
+        input=text,
+        model="text-embedding-ada-002"
+    )
+    return response['data'][0]['embedding']
+```
+
+### Layer 3: Graph Operations Implementation
+
+**Retriever Architecture**
+
+```python
+class BaseRetriever:
+    def __init__(self, driver: GraphDatabase.driver):
+        self.driver = driver
+        
+    def execute_query(self, cypher: str, params: dict) -> List[Dict]:
+        with self.driver.session() as session:
+            result = session.run(cypher, **params)
+            return [dict(record) for record in result]
+```
+
+**Error Code Retriever Example**
+```python
+class ErrorCodeRetriever(BaseRetriever):
+    def get_error_with_context(self, code: str, product: str = None):
+        if product:
+            cypher = """
+            MATCH (e:ErrorSamsung {codigoError: $code})
+            OPTIONAL MATCH (p:ProductoSamsung {codigoProducto: $product})
+            OPTIONAL MATCH (p)-[r:TIENE_ERROR]->(e)
+            RETURN e, p, r, 
+                   exists((p)-[:TIENE_ERROR]->(e)) as affects_product
+            """
+            params = {'code': code, 'product': product}
+        else:
+            cypher = """
+            MATCH (e:ErrorSamsung {codigoError: $code})
+            OPTIONAL MATCH (p:ProductoSamsung)-[r:TIENE_ERROR]->(e)
+            RETURN e, collect({
+                producto: p.codigoProducto,
+                frecuencia: r.frecuencia
+            }) as affected_products
+            """
+            params = {'code': code}
+            
+        return self.execute_query(cypher, params)
+```
+
+## Query Flow Examples
+
+### Example 1: Error Code Query
+```
+User: "Error E458 en mi DVM S 16HP"
+  ↓
+Layer 2: 
+  - Intent: error_diagnosis
+  - Entities: {error: "E458", product_type: "DVM S 16HP"}
+  ↓
+Layer 3:
+  - ErrorCodeRetriever.extract_error_codes("E458")
+  - Search for DVM S 16HP products
+  ↓
+Layer 1:
+  - Query: MATCH (e:ErrorSamsung {codigoError: 'E458'})
+  - Query: MATCH (p:ProductoSamsung) WHERE p.nombre CONTAINS 'DVM S' 
+           AND p.nombre CONTAINS '16HP'
+  ↓
+Response: Structured error solution with product-specific notes
+```
+
+### Example 2: Compatibility Query
+```
+User: "Qué cassettes son compatibles con AM160MXVAF?"
+  ↓
+Layer 2:
+  - Intent: compatibility_check
+  - Entities: {outdoor_sku: "AM160MXVAF", indoor_type: "cassette"}
+  ↓
+Layer 3:
+  - CompatibilityRetriever.find_compatible_indoor_units()
+  ↓
+Layer 1:
+  - Query: MATCH (out:ProductoSamsung {codigoProducto: 'AM160MXVAF'})
+           MATCH (out)-[:ES_COMPATIBLE]->(in:ProductoSamsung)
+           WHERE in.tipoSistema = 'cassette'
+  ↓
+Response: List of compatible cassettes with capacities and restrictions
+```
+
+### Example 3: CAD Processing Flow
+```
+User: Uploads building.dwg
+  ↓
+Layer 2:
+  - Intent: project_design
+  - Extract: Rooms, areas, heights
+  ↓
+Layer 3:
+  - ProjectRetriever.process_cad_file()
+  - Calculate loads: 0.12 kW/m³
+  ↓
+Layer 1:
+  - Create: (:Proyecto)-[:TIENE_PLANO]->(:PlanoCAD)
+  - Query compatible equipment for calculated loads
+  ↓
+Response: System configuration with equipment selection
+```
+
+## Performance Optimizations
+
+### Caching Strategy
+```python
+from functools import lru_cache
+
+@lru_cache(maxsize=1000)
+def get_product_details(sku: str):
+    # Cache frequently accessed products
+    return neo4j_query(f"MATCH (p:ProductoSamsung {{codigoProducto: '{sku}'}}) RETURN p")
+```
+
+### Batch Operations
+```python
+def batch_create_nodes(nodes: List[Dict], label: str):
+    cypher = f"""
+    UNWIND $batch as row
+    CREATE (n:{label})
+    SET n = row
+    """
+    session.run(cypher, batch=nodes)
+```
+
+### Query Optimization
+- Use indexes on all lookup fields
+- Limit result sets with LIMIT clause
+- Use WITH for query planning hints
+- Profile queries with EXPLAIN/PROFILE
+
+## Monitoring & Analytics
+
+### Key Metrics
+```python
+METRICS = {
+    'response_time_ms': histogram,
+    'query_type_count': counter,
+    'error_resolution_rate': gauge,
+    'daily_active_users': gauge,
+    'cache_hit_rate': gauge
+}
+```
+
+### Learning Loop
+```cypher
+// Track query patterns
+CREATE (q:ConsultaTecnica {
+    consultaId: randomUUID(),
+    pregunta: $query,
+    categoria: $intent,
+    timestamp: datetime(),
+    responseTime: $response_time,
+    resolved: $resolved
+})
+
+// Analyze trends
+MATCH (q:ConsultaTecnica)
+WHERE q.timestamp > datetime() - duration('P7D')
+RETURN q.categoria, count(*) as frequency
+ORDER BY frequency DESC
+```
+
+## Deployment Considerations
+
+### Scaling Strategy
+1. **Neo4j**: Use causal clustering for HA
+2. **API**: Horizontal scaling with load balancer
+3. **Embeddings**: Cache frequently used vectors
+4. **WhatsApp**: Queue with rate limiting
+
+### Security
+1. **Authentication**: JWT tokens for API
+2. **Authorization**: Role-based access (installer, admin)
+3. **Encryption**: TLS for all connections
+4. **Audit**: Log all data modifications
+
+### Backup & Recovery
+```bash
+# Daily Neo4j backup
+neo4j-admin backup --to=/backups/neo4j/$(date +%Y%m%d)
+
+# Incremental updates
+neo4j-admin backup --incremental --from=neo4j://localhost:6362 --to=/backups/current
+```
+
+This architecture ensures scalability, maintainability, and optimal performance for the HVAC technical support system.

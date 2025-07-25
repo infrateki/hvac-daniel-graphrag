@@ -1,0 +1,104 @@
+# HVAC Domain Ontology
+## Samsung HVAC Technical Support Knowledge Graph
+
+### Core Entities
+
+#### ProductoSamsung
+- **Purpose**: Represents all Samsung HVAC products
+- **Key Properties**:
+  - codigoProducto: 10-character SKU (e.g., AM080MXVAF)
+  - nombre: Product name
+  - tipoSistema: VRF, SPLIT, MULTI_SPLIT, CASSETTE, DUCTED
+  - capacidadKw: Capacity in kilowatts
+  - capacidadBtu: Capacity in BTU
+  - categoria: VRF, VRF_INDOOR, RAC, CAC
+  - serie: Product series (DVM S, WindFree, etc.)
+  - disponibleAR: Available in Argentina
+  - disponiblePY: Available in Paraguay
+
+#### ErrorSamsung
+- **Purpose**: Error codes and diagnostic information
+- **Key Properties**:
+  - codigoError: Error code (E458, CH01, etc.)
+  - descripcion: Spanish description
+  - severidad: critical, warning, info
+  - categoria: mechanical, electrical, refrigerant, sensor, communication
+  - solucionDetallada: Step-by-step solutions
+  - tiempoResolucion: Average resolution time in minutes
+  - videoTutorial: Link to video guide
+
+#### EspecificacionCable
+- **Purpose**: Cable specifications for installations
+- **Key Properties**:
+  - especCableId: Unique identifier
+  - tipo: power, communication, control, drain
+  - especificacion: Technical specification (e.g., 3x4.0mm²)
+  - longitudMaxima: Maximum length in meters
+  - norma: Applicable standard (IEC, etc.)
+
+#### Instalador
+- **Purpose**: Installer profiles and history
+- **Key Properties**:
+  - instaladorId: Unique ID
+  - nombre: Full name
+  - empresa: Company name
+  - whatsapp: Contact number
+  - certificacionSamsung: Certification status
+  - region: Service area
+
+#### Proyecto
+- **Purpose**: Installation projects
+- **Key Properties**:
+  - proyectoId: Project identifier
+  - nombreProyecto: Project name
+  - tipoEdificio: Building type
+  - pais: AR or PY
+  - estado: cotizando, aprobado, instalando, completado
+
+### Relationships
+
+#### ES_COMPATIBLE
+- **From**: ProductoSamsung (outdoor)
+- **To**: ProductoSamsung (indoor)
+- **Properties**:
+  - maxUnidades: Maximum units connectable
+  - restricciones: Array of restrictions
+  - validadoPor: Validation source
+
+#### TIENE_ERROR
+- **From**: ProductoSamsung
+- **To**: ErrorSamsung
+- **Properties**:
+  - frecuencia: Occurrence frequency
+  - condiciones: Conditions when error occurs
+
+#### REQUIERE_CABLE
+- **From**: ProductoSamsung
+- **To**: EspecificacionCable
+- **Properties**:
+  - proposito: Cable purpose
+  - cantidad: Quantity needed
+  - obligatorio: Required or optional
+
+### Domain Rules
+
+#### Capacity Rules
+- VRF indoor/outdoor ratio: Maximum 130%
+- Multi-split ratio: Maximum 100%
+- Volumetric calculation: 0.12 kW/m³ (Daniel's rule)
+
+#### Installation Rules
+- Maximum pipe length: 1000m (VRF), 75m (Multi-split)
+- Maximum height difference: 110m (VRF), 15m (Multi-split)
+- Refrigerant charge: Base + (0.06 kg/m × pipe length)
+
+#### Error Severity
+- Critical: System shutdown required
+- Warning: Performance degradation
+- Info: Maintenance recommendation
+
+### Regional Specifications
+- Argentina (AR): 220V/380V, 50Hz
+- Paraguay (PY): 220V/380V, 50Hz
+- Currency: AR (ARS), PY (PYG)
+- Language: Spanish primary, English secondary

@@ -1,0 +1,185 @@
+# Three-Layer Architecture for HVAC GraphRAG
+## Based on IRINA FEA (Framework for Enhanced Augmentation)
+
+### Overview
+This architecture implements a three-layer approach for intelligent HVAC technical support, combining domain ontology, AI processing, and graph operations.
+
+### Layer 1: Domain Ontology (Knowledge Foundation)
+**Purpose**: Structured representation of HVAC domain knowledge
+
+#### Components:
+1. **Entity Schema** (@ontology)
+   - ProductoSamsung: Products with specifications
+   - ErrorSamsung: Error codes and solutions
+   - EspecificacionCable: Cable requirements
+   - Instalador: User profiles
+   - Proyecto: Project management
+
+2. **Relationship Graph**
+   ```cypher
+   (Outdoor)-[:ES_COMPATIBLE]->(Indoor)
+   (Product)-[:TIENE_ERROR]->(Error)
+   (Product)-[:REQUIERE_CABLE]->(Cable)
+   (Installer)-[:REALIZO_CONSULTA]->(Query)
+   ```
+
+3. **Domain Rules**
+   - Capacity calculations
+   - Compatibility matrices
+   - Installation constraints
+   - Regional specifications
+
+### Layer 2: AI Processing (Intelligence Layer)
+**Purpose**: Natural language understanding and context enrichment
+
+#### Components:
+1. **Query Understanding**
+   - Intent classification (error, compatibility, installation, cable)
+   - Entity extraction (SKUs, error codes, capacities)
+   - Language detection (Spanish/English)
+   - Context preservation
+
+2. **Embeddings & Similarity**
+   - Manual sections → Vector embeddings
+   - Semantic search across documentation
+   - Similar error pattern detection
+   - Product similarity matching
+
+3. **Response Generation**
+   - Template-based for structured data
+   - LLM-enhanced for explanations
+   - Multi-language support
+   - Confidence scoring
+
+### Layer 3: Graph Operations (Execution Layer)
+**Purpose**: Efficient data retrieval and relationship traversal
+
+#### Specialized Retrievers:
+1. **ErrorCodeRetriever**
+   ```python
+   - extract_error_codes(query) → List[str]
+   - get_error_details(code, product_sku) → Dict
+   - search_similar_errors(code) → List[Dict]
+   - log_error_occurrence(code, sku, installer)
+   ```
+
+2. **CompatibilityRetriever**
+   ```python
+   - find_compatible_indoor_units(outdoor_sku) → CompatibilityResult
+   - validate_system_configuration(config) → ValidationResult
+   - find_replacement_product(old_sku) → List[Dict]
+   - get_cable_requirements(system) → List[CableSpec]
+   ```
+
+3. **InstallationRetriever**
+   ```python
+   - get_installation_procedure(sku) → Procedure
+   - get_space_requirements(sku) → Requirements
+   - validate_installation_conditions(env) → Validation
+   - get_commissioning_checklist(system) → Checklist
+   ```
+
+4. **ProjectRetriever**
+   ```python
+   - process_cad_file(file_path) → RoomData
+   - calculate_volumetric_balance(rooms) → LoadCalc
+   - generate_system_tree(loads) → SystemConfig
+   - export_to_dvm_pro(config) → DVMFormat
+   ```
+
+### Data Flow Example
+
+1. **User Query**: "Error E458 en AM080MXVAF"
+
+2. **Layer 2 Processing**:
+   - Intent: Error diagnosis
+   - Entities: {error: "E458", product: "AM080MXVAF"}
+   - Language: Spanish
+   - Context: Product-specific error
+
+3. **Layer 1 Query**:
+   ```cypher
+   MATCH (p:ProductoSamsung {codigoProducto: 'AM080MXVAF'})
+   MATCH (e:ErrorSamsung {codigoError: 'E458'})
+   OPTIONAL MATCH (p)-[r:TIENE_ERROR]->(e)
+   RETURN p, e, r
+   ```
+
+4. **Layer 3 Execution**:
+   - ErrorCodeRetriever.get_error_details("E458", "AM080MXVAF")
+   - Enrich with manual sections
+   - Add video tutorials
+   - Log occurrence for learning
+
+5. **Response Generation**:
+   ```
+   Error E458: Outdoor unit fan motor error
+   Severity: CRITICAL
+   
+   Steps to resolve:
+   1. Check fan motor connections
+   2. Verify motor capacitor
+   3. Check for mechanical obstruction
+   4. Measure motor winding resistance
+   
+   Estimated time: 45 minutes
+   Video tutorial: [link]
+   ```
+
+### Learning & Improvement
+
+1. **Query Logging**
+   - Track all technical consultations
+   - Identify frequent issues
+   - Monitor resolution success
+
+2. **Pattern Recognition**
+   - Common error sequences
+   - Seasonal patterns
+   - Product-specific issues
+
+3. **Knowledge Updates**
+   - New error codes from manuals
+   - Updated compatibility matrices
+   - Installer feedback integration
+
+### Performance Metrics
+
+- Query response time: <2 seconds
+- Error code accuracy: >95%
+- Compatibility match rate: >98%
+- User satisfaction: >90%
+
+### Integration Points
+
+1. **WhatsApp Interface**
+   - Natural language input
+   - Structured response format
+   - Image/document support
+
+2. **CAD Processing**
+   - DWG/DXF parsing
+   - Room extraction
+   - Load calculation
+
+3. **Samsung Software**
+   - DVM Pro 2 export
+   - S-NET Pro 2 integration
+   - Error code sync
+
+### Future Enhancements
+
+1. **Predictive Maintenance**
+   - Error pattern analysis
+   - Failure prediction
+   - Preventive recommendations
+
+2. **AR Support**
+   - Visual installation guides
+   - Component identification
+   - Real-time assistance
+
+3. **Voice Interface**
+   - Hands-free operation
+   - Multi-language support
+   - Field-friendly UX
