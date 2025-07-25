@@ -1,0 +1,81 @@
+# HVAC GraphRAG Configuration
+# For Daniel @ Multipoint S.A.
+
+# Neo4j Database Configuration
+neo4j:
+  uri: "neo4j+s://4cf147ca.databases.neo4j.io"
+  user: "neo4j"
+  password: "VGnEYje3ygdicoxAxsdPRJA4eyyc7L5Xso0mYwrSzxk"
+  database: "neo4j"  # Aura uses 'neo4j' as default database
+  
+# OpenAI Configuration
+openai:
+  api_key: "your_openai_api_key_here"
+  model: "gpt-4-turbo-preview"
+  embedding_model: "text-embedding-ada-002"
+  temperature: 0.1  # Low temperature for technical accuracy
+  max_tokens: 2000
+
+# Samsung HVAC Configuration
+samsung:
+  default_region: "PY"  # Argentina: AR, Paraguay: PY
+  default_language: "es"  # Spanish primary
+  support_languages: ["es", "en"]
+  
+# Vector Search Configuration
+vector_search:
+  embedding_dimension: 1536
+  similarity_threshold: 0.85
+  max_results: 10
+  index_name: "hvac_embeddings"
+
+# GraphRAG Configuration
+graphrag:
+  community_detection:
+    algorithm: "leiden"
+    resolutions: [0.5, 1.0, 1.5, 2.0]
+    min_community_size: 3
+  hierarchical_summarization:
+    max_summary_length: 500
+    levels: 3
+  
+# WhatsApp Configuration
+whatsapp:
+  enabled: false  # Set to true when ready
+  api_endpoint: "https://api.whatsapp.com/..."
+  webhook_url: "https://your-domain.com/webhook"
+  phone_number: "+595..."  # Paraguay number
+  
+# CAD Processing Configuration
+cad_processing:
+  supported_formats: ["dwg", "dxf", "pdf"]
+  max_file_size_mb: 50
+  extraction_method: "ai_enhanced"  # or "rule_based"
+  
+# Caching Configuration
+cache:
+  enabled: true
+  ttl_seconds: 3600  # 1 hour
+  max_size_mb: 100
+  
+# Logging Configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  format: "json"
+  file: "logs/hvac_graphrag.log"
+  
+# Performance Settings
+performance:
+  batch_size: 50
+  max_concurrent_requests: 10
+  timeout_seconds: 30
+  retry_attempts: 3
+  
+# Data Paths
+paths:
+  manuals: "data/manuals/"
+  products: "data/products/"
+  errors: "data/errors/"
+  projects: "data/projects/"
+  logs: "logs/"
+  cache: "cache/"
